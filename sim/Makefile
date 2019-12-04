@@ -55,7 +55,7 @@ PROGRAMS := predictor
 
 objects = predictor.o main.o 
 
-all: $(PROGRAMS)
+all: clean $(PROGRAMS)
 
 predictor : $(objects)
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)

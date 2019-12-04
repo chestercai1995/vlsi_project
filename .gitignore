@@ -2,4 +2,5 @@ traces/*
 formatted_res/*
 results/*
 sim/predictor
-sim/*.o
+sim/main.o
+sim/predictor.o
