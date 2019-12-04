@@ -17,8 +17,8 @@
 #define PHT_CTR_MAX  3
 #define PHT_CTR_INIT 2
 
-#define HIST_LEN  4 
-#define HASHED_PC_LEN 2
+#define HIST_LEN  17 
+#define HASHED_PC_LEN 8
 #define THETA 37
 #define WEIGHT_MAX 63//corresponding to x in verilog
 #define WEIGHT_MIN -64//corresponding to x in verilog
@@ -121,7 +121,7 @@ bool   PREDICTOR::GetPrediction(UINT64 PC){
       mask = mask << 1;
     }
   }
-  fprintf(stderr, "sum is %lld\n", sum);
+ // fprintf(stderr, "sum is %lld\n", sum);
 
   if(sum > 0){ 
     return TAKEN; 
@@ -192,26 +192,26 @@ void  PREDICTOR::UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool
     ghr++; 
   }
   
-  fprintf(stderr, "****************************************\n");
-  char truedir = 't';
-  char preddir = 't';
-  if (resolveDir == NOT_TAKEN){
-    truedir = 'n';
-  }
-  if (predDir == NOT_TAKEN){
-    preddir = 'n';
-  }
-  fprintf(stderr, "PC is %llx, true_dir: %c, pred_dir: %c\n", PC, truedir, preddir);
-  fprintf(stderr, "GHR: %llx\n", ghr);
-  UINT32 j;
-  for(i = 0; i < (1 << HASHED_PC_LEN); i++){
-    fprintf(stderr, "table set %d:", i);
-    for(j = 0; j < (HIST_LEN + 1); j ++){
-      fprintf(stderr, "|  %d  |", table[i * (HIST_LEN + 1) + j]);
-    }
-    fprintf(stderr, "\n");
-  }
-  fprintf(stderr, "****************************************\n");
+  //fprintf(stderr, "****************************************\n");
+  //char truedir = 't';
+  //char preddir = 't';
+  //if (resolveDir == NOT_TAKEN){
+  //  truedir = 'n';
+  //}
+  //if (predDir == NOT_TAKEN){
+  //  preddir = 'n';
+  //}
+  //fprintf(stderr, "PC is %llx, true_dir: %c, pred_dir: %c\n", PC, truedir, preddir);
+  //fprintf(stderr, "GHR: %llx\n", ghr);
+  //UINT32 j;
+  //for(i = 0; i < (1 << HASHED_PC_LEN); i++){
+  //  fprintf(stderr, "table set %d:", i);
+  //  for(j = 0; j < (HIST_LEN + 1); j ++){
+  //    fprintf(stderr, "|  %d  |", table[i * (HIST_LEN + 1) + j]);
+  //  }
+  //  fprintf(stderr, "\n");
+  //}
+  //fprintf(stderr, "****************************************\n");
   
 }
 
