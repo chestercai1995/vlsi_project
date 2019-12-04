@@ -40,8 +40,8 @@ class PREDICTOR{
   //UINT32  historyLength; // history length
   //UINT32  numPhtEntries; // entries in pht 
   
-  uint64 ghr;
-  int32 table;
+  UINT64 ghr;
+  INT32 *table;
   
 
  public:
@@ -81,10 +81,10 @@ PREDICTOR::PREDICTOR(void){
   //numPhtEntries    = (1<< HIST_LEN);
 
   //pht = new UINT32[numPhtEntries];
-  pht = new UINT32[(1 << HASHED_PC_LEN) * HIST_LEN];
+  table =  new INT32[(1 << HASHED_PC_LEN) * (HIST_LEN + 1)];
 
   //for(UINT32 ii=0; ii< numPhtEntries; ii++){
-  for(UINT32 ii=0; ii< (1 << HASHED_PC_LEN) * HIST_LEN; ii++){
+  for(UINT32 ii=0; ii< (1 << HASHED_PC_LEN) * (HIST_LEN + 1); ii++){
     table[ii]=0; 
   }
   
@@ -130,17 +130,22 @@ bool   PREDICTOR::GetPrediction(UINT64 PC){
 
 //  printf(" ghr: %x index: %x counter: %d prediction: %d\n", ghr, phtIndex, phtCounter, phtCounter > PHT_CTR_MAX/2);
 
-  INT64 sum = 0;
+  long long int sum = 0;
   UINT32 i;
   UINT32 mask = 1;
-  for(i = 0; i < HIST_LEN; i++){
-    if(ghr & mask){
-      sum += table[table_index * HIST_LEN + i]
+  for(i = 0; i < (HIST_LEN + 1); i++){
+    if(i == 0){
+      sum += table[table_index * HIST_LEN]; // bias 
     }
     else{
-      sum -= table[table_index * HIST_LEN + i]
+      if(ghr & mask){
+        sum += table[table_index * HIST_LEN + i];
+      }
+      else{
+        sum -= table[table_index * HIST_LEN + i];
+      }
+      mask = mask < 1;
     }
-    mask = mask < 1;
   }
 
   if(sum > 0){ 
@@ -188,29 +193,45 @@ void  PREDICTOR::UpdatePredictor(UINT64 PC, OpType opType, bool resolveDir, bool
   //UINT32 phtCounter = pht[phtIndex];
   UINT32 table_index = PC & 0x00ff; //TODO: are we just using the lower 8 bits?
 
-  INT64 sum = 0;
+  long long int sum = 0;
   UINT32 i;
   UINT32 mask = 1;
-  for(i = 0; i < HIST_LEN; i++){
-    if(ghr & mask){
-      sum += table[table_index * HIST_LEN + i]
+  for(i = 0; i < (HIST_LEN + 1); i++){
+    if(i == 0){
+      sum += table[table_index * HIST_LEN]; // bias 
     }
     else{
-      sum -= table[table_index * HIST_LEN + i]
+      if(ghr & mask){
+        sum += table[table_index * HIST_LEN + i];
+      }
+      else{
+        sum -= table[table_index * HIST_LEN + i];
+      }
+      mask = mask < 1;
     }
-    mask = mask < 1;
   }
 
   mask = 1;
   if ((resolveDir != predDir) || (sum < THETA)){
-    for(i = 0; i < HIST_LEN; i++){
-      bool past_dir = ghr & mask;
-      if(resolveDir == past_dir){
-        table[table_index * HIST_LEN + i] = SatIncrement(table[table_index * HIST_LEN + i], WEIGHT_MAX);
+    for(i = 0; i < (HIST_LEN + 1); i++){
+      if(i == 0){
+        if(resolveDir == TAKEN) {
+          table[table_index * HIST_LEN] = SatIncrement(table[table_index * HIST_LEN], WEIGHT_MAX);
+        }
+        else{
+          if(table[table_index * HIST_LEN] != WEIGHT_MIN)
+            table[table_index * HIST_LEN] = table[table_index * HIST_LEN] - 1;
+        }
       }
       else{
-        if(table[table_index * HIST_LEN + i] != WEIGHT_MIN)
-          table[table_index * HIST_LEN + i] -= 1;
+        bool past_dir = ghr & mask;
+        if(resolveDir == past_dir){
+          table[table_index * HIST_LEN + i] = SatIncrement(table[table_index * HIST_LEN + i], WEIGHT_MAX);
+        }
+        else{
+          if(table[table_index * HIST_LEN + i] != WEIGHT_MIN)
+            table[table_index * HIST_LEN + i] -= 1;
+        }
       }
     }
   }

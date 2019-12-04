@@ -1,1 +1,5 @@
 traces/*
+formatted_res/*
+results/*
+sim/predictor
+sim/*.o
